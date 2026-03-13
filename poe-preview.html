@@ -1,0 +1,1158 @@
+<!DOCTYPE html><html lang="en"><head><meta name="x-poe-datastore-behavior" content="local_only"><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Spin1M – Claim Your Number</title>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Lexend:wght@300;400;500;600;700&amp;family=Source+Code+Pro:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #08080c;
+            --bg-secondary: #0c0c12;
+            --surface: #111118;
+            --card: #1a1a24;
+            --card-hover: #222230;
+            --border: #2a2a36;
+            --accent: #e8b341;
+            --accent-glow: #ffd666;
+            --accent-dark: #b8891a;
+            --accent-bg: rgba(232,179,65,0.08);
+            --text: #eceef4;
+            --text-secondary: #b0b4c4;
+            --text-muted: #6b6f82;
+            --success: #34d399;
+            --danger: #f87171;
+            --shadow: 0 4px 24px rgba(0,0,0,0.4);
+            --shadow-lg: 0 8px 48px rgba(0,0,0,0.6);
+        }
+
+        html:not(.dark) {
+            --bg: #f4f1eb;
+            --bg-secondary: #ede9e0;
+            --surface: #ffffff;
+            --card: #ede9e0;
+            --card-hover: #e4dfd5;
+            --border: #d4cfc4;
+            --accent: #b8860b;
+            --accent-glow: #d4a017;
+            --accent-dark: #8b6508;
+            --accent-bg: rgba(184,134,11,0.08);
+            --text: #1a1a28;
+            --text-secondary: #4a4a5a;
+            --text-muted: #8a8a98;
+            --success: #059669;
+            --danger: #dc2626;
+            --shadow: 0 4px 24px rgba(0,0,0,0.08);
+            --shadow-lg: 0 8px 48px rgba(0,0,0,0.12);
+        }
+
+        html { font-size: 16px; }
+
+        body {
+            font-family: 'Lexend', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ---- Background Effects ---- */
+        .bg-gradient {
+            position: fixed; inset: 0;
+            background: radial-gradient(ellipse at 50% 25%, rgba(232,179,65,0.07) 0%, transparent 65%);
+            pointer-events: none; z-index: 0;
+        }
+        html:not(.dark) .bg-gradient {
+            background: radial-gradient(ellipse at 50% 25%, rgba(184,134,11,0.04) 0%, transparent 65%);
+        }
+
+        .particles { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+        .particle {
+            position: absolute; width: 2px; height: 2px;
+            background: var(--accent); border-radius: 50%;
+            opacity: 0; animation: float-particle 8s infinite ease-in-out;
+        }
+        @keyframes float-particle {
+            0% { opacity: 0; transform: translateY(100vh) scale(0); }
+            20% { opacity: 0.5; }
+            80% { opacity: 0.2; }
+            100% { opacity: 0; transform: translateY(-10vh) scale(1); }
+        }
+
+        /* ---- Animations ---- */
+        @keyframes fade-down { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fade-up { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes scale-in { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        @keyframes shimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
+
+        /* ============================================
+           WELCOME / USERNAME SCREEN
+        ============================================ */
+        .welcome-screen {
+            position: fixed; inset: 0; z-index: 500;
+            background: var(--bg);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: 32px 24px;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .welcome-screen.exiting {
+            opacity: 0; transform: scale(1.05);
+            pointer-events: none;
+        }
+        .welcome-screen.hidden { display: none; }
+
+        .welcome-logo {
+            font-family: 'Anton', sans-serif;
+            font-size: 3.5rem; letter-spacing: 3px;
+            color: var(--accent); text-transform: uppercase;
+            margin-bottom: 4px;
+            animation: fade-down 0.6s ease-out both;
+        }
+        .welcome-logo span { color: var(--text-muted); font-size: 0.5em; vertical-align: super; margin-left: 2px; }
+
+        .welcome-tagline {
+            font-size: 0.85rem; color: var(--text-muted);
+            text-align: center; margin-bottom: 48px; max-width: 320px; line-height: 1.5;
+            animation: fade-down 0.7s ease-out both;
+        }
+        .welcome-tagline strong { color: var(--accent); font-weight: 600; }
+
+        .welcome-card {
+            width: 100%; max-width: 380px;
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 20px; padding: 32px 28px;
+            animation: scale-in 0.6s ease-out 0.2s both;
+        }
+
+        .welcome-card h2 {
+            font-size: 1.15rem; font-weight: 700; margin-bottom: 6px;
+        }
+        .welcome-card .desc {
+            font-size: 0.78rem; color: var(--text-muted); margin-bottom: 24px; line-height: 1.5;
+        }
+
+        .username-group { margin-bottom: 20px; position: relative; }
+        .username-group label {
+            display: block; font-size: 0.7rem; font-weight: 600;
+            color: var(--text-muted); text-transform: uppercase;
+            letter-spacing: 1px; margin-bottom: 8px;
+        }
+        .username-input-wrap {
+            position: relative; display: flex; align-items: center;
+        }
+        .username-input-wrap .at-symbol {
+            position: absolute; left: 14px;
+            font-family: 'Source Code Pro', monospace; font-size: 1rem;
+            color: var(--accent); font-weight: 600; pointer-events: none;
+        }
+        .username-input {
+            width: 100%; padding: 14px 14px 14px 34px;
+            background: var(--card); border: 2px solid var(--border);
+            border-radius: 12px; color: var(--text);
+            font-family: 'Lexend', sans-serif; font-size: 1rem; font-weight: 500;
+            transition: border-color 0.2s, box-shadow 0.2s; outline: none;
+        }
+        .username-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(232,179,65,0.15);
+        }
+        .username-input::placeholder { color: var(--text-muted); opacity: 0.45; font-weight: 400; }
+
+        .username-rules {
+            display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;
+        }
+        .username-rule {
+            display: flex; align-items: center; gap: 5px;
+            font-size: 0.68rem; color: var(--text-muted);
+            transition: color 0.2s;
+        }
+        .username-rule i { font-size: 0.6rem; transition: color 0.2s; }
+        .username-rule.valid { color: var(--success); }
+        .username-rule.valid i { color: var(--success); }
+
+        .username-error {
+            font-size: 0.75rem; color: var(--danger); margin-top: 8px;
+            min-height: 20px;
+        }
+
+        .welcome-btn {
+            width: 100%; padding: 16px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+            color: #000; font-family: 'Lexend', sans-serif;
+            font-size: 1.05rem; font-weight: 700;
+            border: none; border-radius: 14px; cursor: pointer;
+            transition: all 0.25s; position: relative; overflow: hidden;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .welcome-btn::before {
+            content: ''; position: absolute; top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        .welcome-btn:hover::before { left: 100%; }
+        .welcome-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(232,179,65,0.3); }
+        .welcome-btn:active { transform: translateY(0); }
+        .welcome-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+        .welcome-btn:disabled::before { display: none; }
+
+        .welcome-footer {
+            margin-top: 24px; text-align: center;
+            font-size: 0.68rem; color: var(--text-muted); line-height: 1.6;
+            animation: fade-up 0.7s ease-out 0.4s both;
+        }
+        .welcome-footer strong { color: var(--text-secondary); }
+
+        .welcome-stats {
+            display: flex; gap: 32px; margin-top: 40px;
+            animation: fade-up 0.8s ease-out 0.5s both;
+        }
+        .welcome-stat { text-align: center; }
+        .welcome-stat-val {
+            font-family: 'Source Code Pro', monospace;
+            font-size: 1.4rem; font-weight: 700; color: var(--accent);
+        }
+        .welcome-stat-label {
+            font-size: 0.65rem; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 1px; margin-top: 2px;
+        }
+
+        /* ============================================
+           APP (hidden until username set)
+        ============================================ */
+        .app-wrap {
+            display: none;
+        }
+        .app-wrap.visible {
+            display: block;
+            animation: fade-in 0.5s ease-out;
+        }
+
+        /* ---- Header ---- */
+        .header {
+            position: relative; z-index: 10;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 20px;
+            animation: fade-down 0.5s ease-out both;
+        }
+        .logo {
+            font-family: 'Anton', sans-serif;
+            font-size: 1.8rem; letter-spacing: 2px;
+            color: var(--accent); text-transform: uppercase;
+        }
+        .logo span { color: var(--text-muted); font-size: 0.55em; vertical-align: super; margin-left: 2px; }
+
+        .header-user {
+            display: flex; align-items: center; gap: 10px;
+        }
+        .header-username {
+            font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);
+            display: none;
+        }
+        @media (min-width: 400px) { .header-username { display: block; } }
+
+        .btn-icon {
+            background: var(--card); border: 1px solid var(--border);
+            color: var(--text-secondary);
+            width: 42px; height: 42px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.2s; font-size: 1rem;
+        }
+        .btn-icon:hover { background: var(--card-hover); color: var(--accent); border-color: var(--accent); }
+
+        /* ---- Main Spin Page ---- */
+        .main {
+            position: relative; z-index: 10;
+            display: flex; flex-direction: column; align-items: center;
+            padding: 8px 20px 70px;
+            min-height: calc(100vh - 74px);
+        }
+
+        /* Remaining Counter */
+        .remaining { text-align: center; margin-bottom: 28px; animation: fade-down 0.6s ease-out both; }
+        .remaining-label {
+            font-size: 0.7rem; font-weight: 500;
+            color: var(--text-muted); text-transform: uppercase; letter-spacing: 2.5px; margin-bottom: 4px;
+        }
+        .remaining-count {
+            font-family: 'Source Code Pro', monospace;
+            font-size: 1.4rem; font-weight: 700; color: var(--accent);
+            transition: transform 0.3s, color 0.3s;
+        }
+        .remaining-count.bump { animation: count-bump 0.4s ease-out; }
+        @keyframes count-bump {
+            0% { transform: scale(1.25); color: var(--accent-glow); }
+            100% { transform: scale(1); }
+        }
+
+        /* ---- Spin Circle ---- */
+        .spin-container { position: relative; margin-bottom: 32px; animation: fade-up 0.7s ease-out both; }
+
+        .spin-ring {
+            width: 270px; height: 270px; border-radius: 50%;
+            position: relative;
+            display: flex; align-items: center; justify-content: center;
+            background: var(--card);
+            border: 2px solid var(--border);
+            transition: all 0.6s cubic-bezier(0.4,0,0.2,1);
+        }
+        .spin-ring::before {
+            content: ''; position: absolute; inset: -4px; border-radius: 50%;
+            background: conic-gradient(from 0deg, var(--accent) 0%, transparent 12%, transparent 50%, var(--accent) 62%, transparent 75%, transparent 100%);
+            z-index: -1; opacity: 0.25; transition: opacity 0.5s;
+        }
+        .spin-ring.spinning::before { opacity: 1; animation: rotate-ring 0.7s linear infinite; }
+        .spin-ring.revealed::before {
+            opacity: 1;
+            background: conic-gradient(from 0deg, var(--accent), var(--accent-glow), var(--accent), var(--accent-glow), var(--accent));
+            animation: none;
+        }
+        .spin-ring.revealed { box-shadow: 0 0 80px rgba(232,179,65,0.15), inset 0 0 30px rgba(232,179,65,0.05); }
+        @keyframes rotate-ring { to { transform: rotate(360deg); } }
+
+        .spin-inner { text-align: center; }
+        .spin-label {
+            font-size: 0.65rem; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 3px; color: var(--text-muted); margin-bottom: 8px;
+        }
+        .spin-number {
+            font-family: 'Source Code Pro', monospace;
+            font-size: 3rem; font-weight: 900;
+            color: var(--text); line-height: 1; min-width: 180px;
+            transition: color 0.3s, text-shadow 0.4s;
+        }
+        .spin-number.waiting { animation: pulse-wait 2.5s ease-in-out infinite; }
+        @keyframes pulse-wait { 0%,100% { opacity: 0.4; } 50% { opacity: 0.9; } }
+        .spin-number.golden { color: var(--accent); text-shadow: 0 0 40px rgba(232,179,65,0.35); }
+
+        .spin-sublabel {
+            font-size: 0.7rem; color: var(--text-muted); margin-top: 10px;
+            opacity: 0; transition: opacity 0.5s ease 0.2s;
+        }
+        .spin-sublabel.visible { opacity: 1; }
+
+        /* ---- Spin Button ---- */
+        .spin-btn {
+            width: 100%; max-width: 320px;
+            padding: 16px 28px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+            color: #000;
+            font-family: 'Lexend', sans-serif; font-size: 1.05rem; font-weight: 700;
+            border: none; border-radius: 16px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            transition: all 0.25s; position: relative; overflow: hidden;
+            animation: fade-up 0.8s ease-out both;
+        }
+        .spin-btn::before {
+            content: ''; position: absolute; top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        .spin-btn:hover::before { left: 100%; }
+        .spin-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(232,179,65,0.3); }
+        .spin-btn:active { transform: translateY(0); }
+        .spin-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+        .spin-btn:disabled::before { display: none; }
+        .spin-btn .price { background: rgba(0,0,0,0.15); padding: 4px 12px; border-radius: 8px; font-size: 0.85rem; }
+
+        /* ---- Action Buttons ---- */
+        .action-buttons { display: flex; gap: 12px; width: 100%; max-width: 320px; margin-top: 12px; }
+        .btn-secondary {
+            flex: 1; padding: 14px 16px;
+            background: var(--card); color: var(--text);
+            font-family: 'Lexend', sans-serif; font-size: 0.85rem; font-weight: 600;
+            border: 1px solid var(--border); border-radius: 12px;
+            cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .btn-secondary:hover { background: var(--card-hover); border-color: var(--accent); color: var(--accent); }
+        .btn-primary-small {
+            flex: 1; padding: 14px 16px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+            color: #000;
+            font-family: 'Lexend', sans-serif; font-size: 0.85rem; font-weight: 600;
+            border: none; border-radius: 12px;
+            cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .btn-primary-small:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(232,179,65,0.3); }
+
+        /* ---- Info Bar ---- */
+        .info-bar {
+            display: flex; align-items: center; justify-content: center;
+            gap: 18px; margin-top: 24px; width: 100%; max-width: 360px; flex-wrap: wrap;
+            animation: fade-up 0.9s ease-out both;
+        }
+        .info-item { display: flex; align-items: center; gap: 5px; font-size: 0.72rem; color: var(--text-muted); }
+        .info-item i { color: var(--accent); font-size: 0.68rem; }
+
+        /* ---- Live Ticker ---- */
+        .ticker {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: var(--bg-secondary); border-top: 1px solid var(--border);
+            padding: 10px 20px; z-index: 10; overflow: hidden;
+        }
+        .ticker-content { display: flex; gap: 40px; animation: ticker-scroll 40s linear infinite; white-space: nowrap; }
+        .ticker-item { font-size: 0.72rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+        .ticker-item .dot { width: 5px; height: 5px; background: var(--success); border-radius: 50%; flex-shrink: 0; }
+        .ticker-item .num { color: var(--accent); font-family: 'Source Code Pro', monospace; font-weight: 600; }
+        @keyframes ticker-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+        /* ---- Profile Panel ---- */
+        .profile-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+            z-index: 100; opacity: 0; visibility: hidden; transition: all 0.3s;
+        }
+        .profile-overlay.open { opacity: 1; visibility: visible; }
+
+        .profile-panel {
+            position: fixed; top: 0; right: 0;
+            width: 100%; max-width: 420px; height: 100%;
+            background: var(--bg); z-index: 101;
+            transform: translateX(100%);
+            transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+            display: flex; flex-direction: column; overflow-y: auto;
+        }
+        .profile-panel.open { transform: translateX(0); }
+
+        .profile-header {
+            display: flex; align-items: center; gap: 12px;
+            padding: 16px 20px; border-bottom: 1px solid var(--border);
+            position: sticky; top: 0; background: var(--bg); z-index: 1;
+        }
+        .profile-header h2 { font-size: 1.1rem; font-weight: 600; flex: 1; }
+
+        .profile-body { padding: 20px; flex: 1; }
+        .profile-user { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+        .profile-avatar {
+            width: 50px; height: 50px; border-radius: 14px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+            display: flex; align-items: center; justify-content: center;
+            color: #000; font-weight: 700; font-size: 1.3rem;
+        }
+        .profile-name { font-weight: 600; font-size: 1rem; }
+        .profile-id { font-size: 0.75rem; color: var(--text-muted); font-family: 'Source Code Pro', monospace; }
+
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 28px; }
+        .stat-card {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 14px; padding: 16px; text-align: center;
+        }
+        .stat-value { font-family: 'Source Code Pro', monospace; font-size: 1.5rem; font-weight: 700; color: var(--accent); }
+        .stat-label { font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+        .claimed-section h3 {
+            font-size: 0.75rem; font-weight: 600; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px;
+        }
+        .claimed-list { display: flex; flex-direction: column; gap: 8px; }
+        .claimed-item {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 12px; padding: 14px 16px;
+            display: flex; align-items: center; justify-content: space-between;
+            animation: slide-in 0.3s ease-out both;
+        }
+        .claimed-item .number { font-family: 'Source Code Pro', monospace; font-size: 1.05rem; font-weight: 700; color: var(--accent); }
+        .claimed-item .time { font-size: 0.72rem; color: var(--text-muted); }
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+        .empty-state i { font-size: 2.5rem; margin-bottom: 12px; opacity: 0.3; display: block; }
+        .empty-state p { font-size: 0.85rem; line-height: 1.5; }
+        @keyframes slide-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ---- Payment Modal ---- */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+            z-index: 200; display: flex; align-items: center; justify-content: center;
+            padding: 20px; opacity: 0; visibility: hidden; transition: all 0.3s;
+        }
+        .modal-overlay.open { opacity: 1; visibility: visible; }
+
+        .modal {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 20px; width: 100%; max-width: 380px; padding: 28px 24px;
+            transform: scale(0.95) translateY(10px); transition: transform 0.3s;
+        }
+        .modal-overlay.open .modal { transform: scale(1) translateY(0); }
+        .modal h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 4px; }
+        .modal .subtitle { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 24px; }
+
+        .form-group { margin-bottom: 16px; }
+        .form-group label {
+            display: block; font-size: 0.7rem; font-weight: 600;
+            color: var(--text-muted); text-transform: uppercase;
+            letter-spacing: 1px; margin-bottom: 6px;
+        }
+        .form-input {
+            width: 100%; padding: 12px 14px;
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 10px; color: var(--text);
+            font-family: 'Source Code Pro', monospace; font-size: 1rem;
+            transition: border-color 0.2s; outline: none;
+        }
+        .form-input:focus { border-color: var(--accent); }
+        .form-input::placeholder { color: var(--text-muted); opacity: 0.5; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        .modal-actions { display: flex; gap: 12px; margin-top: 24px; }
+        .btn-cancel {
+            flex: 1; padding: 14px;
+            background: var(--card); color: var(--text-secondary);
+            font-family: 'Lexend', sans-serif; font-size: 0.88rem; font-weight: 600;
+            border: 1px solid var(--border); border-radius: 12px;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .btn-cancel:hover { background: var(--card-hover); }
+
+        .btn-pay {
+            flex: 1.5; padding: 14px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+            color: #000;
+            font-family: 'Lexend', sans-serif; font-size: 0.88rem; font-weight: 700;
+            border: none; border-radius: 12px; cursor: pointer;
+            transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-pay:hover { box-shadow: 0 4px 16px rgba(232,179,65,0.3); }
+        .btn-pay:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-pay .spinner {
+            width: 18px; height: 18px;
+            border: 2px solid rgba(0,0,0,0.2); border-top-color: #000;
+            border-radius: 50%; animation: spinner 0.6s linear infinite;
+            display: none;
+        }
+        .btn-pay.processing .spinner { display: block; }
+        .btn-pay.processing .pay-text { display: none; }
+        @keyframes spinner { to { transform: rotate(360deg); } }
+
+        .secure-badge {
+            display: flex; align-items: center; justify-content: center;
+            gap: 6px; margin-top: 16px; font-size: 0.68rem; color: var(--text-muted);
+        }
+        .secure-badge i { color: var(--success); }
+
+        /* ---- Confetti Canvas ---- */
+        #confettiCanvas { position: fixed; inset: 0; pointer-events: none; z-index: 300; }
+
+        /* ---- Responsive ---- */
+        @media (min-width: 480px) {
+            .spin-ring { width: 320px; height: 320px; }
+            .spin-number { font-size: 3.4rem; }
+            .welcome-logo { font-size: 4.5rem; }
+        }
+        @media (min-width: 768px) {
+            .spin-ring { width: 370px; height: 370px; }
+            .spin-number { font-size: 3.8rem; }
+            .remaining-count { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-gradient"></div>
+    <div class="particles" id="particles"></div>
+    <canvas id="confettiCanvas"></canvas>
+
+    <!-- ============================================
+         WELCOME / USERNAME SCREEN
+    ============================================ -->
+    <div class="welcome-screen" id="welcomeScreen">
+        <div class="welcome-logo">SPIN<span>1M</span></div>
+        <p class="welcome-tagline">
+            <strong>1,000,000</strong> unique numbers. Each one can only be claimed once.<br>
+            Spin the wheel. Own your number. Forever.
+        </p>
+
+        <div class="welcome-card">
+            <h2>Create Your Username</h2>
+            <p class="desc">Pick a unique handle to track your claimed numbers and build your collection.</p>
+
+            <div class="username-group">
+                <label for="usernameInput">Username</label>
+                <div class="username-input-wrap">
+                    <span class="at-symbol">@</span>
+                    <input type="text" class="username-input" id="usernameInput" placeholder="LuckySpinner42" maxlength="20" autocomplete="off" spellcheck="false">
+                </div>
+                <div class="username-rules">
+                    <span class="username-rule" id="ruleLength"><i class="fa-solid fa-circle"></i> 3–20 characters</span>
+                    <span class="username-rule" id="ruleChars"><i class="fa-solid fa-circle"></i> Letters, numbers, _</span>
+                </div>
+                <div class="username-error" id="usernameError"></div>
+            </div>
+
+            <button class="welcome-btn" id="createAccountBtn" disabled="">
+                <i class="fa-solid fa-bolt"></i>
+                <span>Start Spinning</span>
+            </button>
+        </div>
+
+        <p class="welcome-footer">
+            <strong>$5 per spin</strong> · Unique numbers from 1 to 1,000,000<br>
+            Each number can only ever be claimed once
+        </p>
+
+        <div class="welcome-stats">
+            <div class="welcome-stat">
+                <div class="welcome-stat-val">1M</div>
+                <div class="welcome-stat-label">Total Numbers</div>
+            </div>
+            <div class="welcome-stat">
+                <div class="welcome-stat-val">$5</div>
+                <div class="welcome-stat-label">Per Spin</div>
+            </div>
+            <div class="welcome-stat">
+                <div class="welcome-stat-val">∞</div>
+                <div class="welcome-stat-label">Yours Forever</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================
+         MAIN APP (hidden until username set)
+    ============================================ -->
+    <div class="app-wrap" id="appWrap">
+        <!-- HEADER -->
+        <header class="header">
+            <div class="logo">SPIN<span>1M</span></div>
+            <div class="header-user">
+                <span class="header-username" id="headerUsername">@user</span>
+                <button class="btn-icon" id="profileBtn" aria-label="Profile">
+                    <i class="fa-solid fa-user"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- MAIN SPIN PAGE -->
+        <main class="main" id="spinPage">
+            <div class="remaining">
+                <div class="remaining-label">Numbers Remaining</div>
+                <div class="remaining-count" id="remainingCount">1,000,000</div>
+            </div>
+
+            <div class="spin-container">
+                <div class="spin-ring" id="spinRing">
+                    <div class="spin-inner">
+                        <div class="spin-label">Your Number</div>
+                        <div class="spin-number waiting" id="spinNumber">?</div>
+                        <div class="spin-sublabel" id="spinSublabel">Exclusively yours forever</div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="spin-btn" id="spinBtn">
+                <i class="fa-solid fa-rotate"></i>
+                <span>SPIN THE WHEEL</span>
+                <span class="price">$5</span>
+            </button>
+
+            <div class="action-buttons" id="actionButtons" style="display:none;">
+                <button class="btn-secondary" id="spinAgainBtn">
+                    <i class="fa-solid fa-rotate"></i> Spin Again
+                </button>
+                <button class="btn-primary-small" id="viewProfileBtn">
+                    <i class="fa-solid fa-trophy"></i> My Numbers
+                </button>
+            </div>
+
+            <div class="info-bar">
+                <div class="info-item"><i class="fa-solid fa-fingerprint"></i><span>Verified unique</span></div>
+                <div class="info-item"><i class="fa-solid fa-lock"></i><span>Secure payment</span></div>
+                <div class="info-item"><i class="fa-solid fa-infinity"></i><span>Yours forever</span></div>
+            </div>
+        </main>
+
+        <!-- LIVE TICKER -->
+        <div class="ticker"><div class="ticker-content" id="tickerContent"></div></div>
+    </div>
+
+    <!-- PROFILE PANEL -->
+    <div class="profile-overlay" id="profileOverlay"></div>
+    <div class="profile-panel" id="profilePanel">
+        <div class="profile-header">
+            <button class="btn-icon" id="closeProfileBtn"><i class="fa-solid fa-arrow-left"></i></button>
+            <h2>My Profile</h2>
+        </div>
+        <div class="profile-body">
+            <div class="profile-user">
+                <div class="profile-avatar" id="profileAvatar">G</div>
+                <div>
+                    <div class="profile-name" id="profileName">Guest</div>
+                    <div class="profile-id" id="profileId">@user</div>
+                </div>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="statSpins">0</div>
+                    <div class="stat-label">Total Spins</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statSpent">$0</div>
+                    <div class="stat-label">Total Spent</div>
+                </div>
+            </div>
+            <div class="claimed-section">
+                <h3>Claimed Numbers</h3>
+                <div class="claimed-list" id="claimedList">
+                    <div class="empty-state">
+                        <i class="fa-solid fa-dice"></i>
+                        <p>No numbers claimed yet.<br>Spin the wheel to get started!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAYMENT MODAL -->
+    <div class="modal-overlay" id="paymentModal">
+        <div class="modal">
+            <h3>Complete Payment</h3>
+            <p class="subtitle">One spin for $5.00 — claim a unique number from 1 to 1,000,000</p>
+            <div class="form-group">
+                <label>Card Number</label>
+                <input type="text" class="form-input" id="cardNumber" placeholder="4242 4242 4242 4242" maxlength="19" inputmode="numeric">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Expiry</label>
+                    <input type="text" class="form-input" id="cardExpiry" placeholder="MM / YY" maxlength="7" inputmode="numeric">
+                </div>
+                <div class="form-group">
+                    <label>CVC</label>
+                    <input type="text" class="form-input" id="cardCvc" placeholder="123" maxlength="4" inputmode="numeric">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" id="cancelPayBtn">Cancel</button>
+                <button class="btn-pay" id="confirmPayBtn">
+                    <span class="spinner"></span>
+                    <span class="pay-text"><i class="fa-solid fa-lock"></i> Pay $5.00</span>
+                </button>
+            </div>
+            <div class="secure-badge">
+                <i class="fa-solid fa-shield-halved"></i>
+                <span>Payments secured with 256-bit encryption (demo mode)</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* ==========================================
+           Dark Mode Detection
+        ========================================== */
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(event) {
+            document.documentElement.classList.toggle('dark', event.matches);
+        });
+
+        /* ==========================================
+           State
+        ========================================== */
+        var TOTAL = 1000000;
+        var claimedSet = new Set();
+        var userClaimed = [];
+        var remaining = TOTAL;
+        var isSpinning = false;
+        var currentUsername = '';
+
+        /* ==========================================
+           DOM Refs
+        ========================================== */
+        function $(id) { return document.getElementById(id); }
+
+        var welcomeScreen = $('welcomeScreen');
+        var appWrap = $('appWrap');
+        var usernameInput = $('usernameInput');
+        var usernameError = $('usernameError');
+        var createAccountBtn = $('createAccountBtn');
+        var ruleLength = $('ruleLength');
+        var ruleChars = $('ruleChars');
+
+        var spinRing = $('spinRing');
+        var spinNumber = $('spinNumber');
+        var spinSublabel = $('spinSublabel');
+        var spinBtn = $('spinBtn');
+        var actionButtons = $('actionButtons');
+        var remainingEl = $('remainingCount');
+        var profileOverlay = $('profileOverlay');
+        var profilePanel = $('profilePanel');
+        var paymentModal = $('paymentModal');
+        var confirmPayBtn = $('confirmPayBtn');
+        var cardNumberInput = $('cardNumber');
+        var cardExpiryInput = $('cardExpiry');
+        var cardCvcInput = $('cardCvc');
+        var claimedList = $('claimedList');
+        var confettiCanvas = $('confettiCanvas');
+        var ctx = confettiCanvas.getContext('2d');
+
+        /* ==========================================
+           Username Validation
+        ========================================== */
+        var usernameRegex = /^[A-Za-z0-9_]+$/;
+
+        function validateUsername(val) {
+            var lengthOk = val.length >= 3 && val.length <= 20;
+            var charsOk = val.length === 0 || usernameRegex.test(val);
+
+            ruleLength.classList.toggle('valid', lengthOk);
+            ruleChars.classList.toggle('valid', charsOk && val.length > 0);
+
+            var isValid = lengthOk && charsOk;
+            createAccountBtn.disabled = !isValid;
+
+            if (val.length > 0 && !charsOk) {
+                usernameError.textContent = 'Only letters, numbers, and underscores allowed';
+            } else {
+                usernameError.textContent = '';
+            }
+
+            return isValid;
+        }
+
+        usernameInput.addEventListener('input', function() {
+            validateUsername(this.value.trim());
+        });
+
+        usernameInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                var val = this.value.trim();
+                if (validateUsername(val)) {
+                    enterApp(val);
+                }
+            }
+        });
+
+        createAccountBtn.addEventListener('click', function() {
+            var val = usernameInput.value.trim();
+            if (validateUsername(val)) {
+                enterApp(val);
+            }
+        });
+
+        /* ==========================================
+           Enter App (transition from welcome)
+        ========================================== */
+        function enterApp(username) {
+            currentUsername = username;
+
+            /* Set profile info everywhere */
+            $('headerUsername').textContent = '@' + username;
+            $('profileName').textContent = username;
+            $('profileId').textContent = '@' + username;
+            $('profileAvatar').textContent = username.charAt(0).toUpperCase();
+
+            /* Animate welcome screen out */
+            welcomeScreen.classList.add('exiting');
+
+            setTimeout(function() {
+                welcomeScreen.classList.add('hidden');
+                appWrap.classList.add('visible');
+                initApp();
+            }, 500);
+        }
+
+        /* ==========================================
+           Init App
+        ========================================== */
+        function initApp() {
+            remaining = TOTAL;
+            remainingEl.textContent = remaining.toLocaleString();
+            generateParticles();
+            generateTicker();
+            resizeCanvas();
+        }
+
+        function resizeCanvas() {
+            confettiCanvas.width = window.innerWidth;
+            confettiCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        /* ==========================================
+           Particles Background
+        ========================================== */
+        function generateParticles() {
+            var c = $('particles');
+            for (var i = 0; i < 28; i++) {
+                var p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.animationDelay = (Math.random() * 8) + 's';
+                p.style.animationDuration = (6 + Math.random() * 6) + 's';
+                var sz = (1 + Math.random() * 2) + 'px';
+                p.style.width = sz;
+                p.style.height = sz;
+                c.appendChild(p);
+            }
+        }
+
+        /* ==========================================
+           Ticker
+        ========================================== */
+        function generateTicker() {
+            var names = ['Alex','Jordan','Taylor','Morgan','Casey','Riley','Sam','Drew','Avery','Quinn','Blake','Reese','Kai','Sage','Ellis','Nova','Rowan','Finn','Harper','Skyler'];
+            var html = '';
+            for (var i = 0; i < 18; i++) {
+                var n = names[Math.floor(Math.random() * names.length)];
+                var suffix = Math.floor(10 + Math.random() * 990);
+                var num = Math.floor(1 + Math.random() * TOTAL);
+                var mins = Math.floor(1 + Math.random() * 55);
+                html += '<div class="ticker-item"><span class="dot"></span>' +
+                    n + '_' + suffix + ' claimed <span class="num">#' + num.toLocaleString() + '</span> &middot; ' + mins + 'm ago</div>';
+            }
+            $('tickerContent').innerHTML = html + html;
+        }
+
+        /* ==========================================
+           Number Generation (1 to 1,000,000)
+        ========================================== */
+        function getRandomUnclaimed() {
+            var n;
+            do {
+                n = Math.floor(Math.random() * TOTAL) + 1;
+            } while (claimedSet.has(n));
+            return n;
+        }
+
+        /* ==========================================
+           Payment Flow
+        ========================================== */
+        function openPayment() {
+            cardNumberInput.value = '';
+            cardExpiryInput.value = '';
+            cardCvcInput.value = '';
+            confirmPayBtn.classList.remove('processing');
+            confirmPayBtn.disabled = false;
+            paymentModal.classList.add('open');
+            setTimeout(function() { cardNumberInput.focus(); }, 120);
+        }
+
+        function closePayment() { paymentModal.classList.remove('open'); }
+
+        function processPayment() {
+            confirmPayBtn.classList.add('processing');
+            confirmPayBtn.disabled = true;
+            setTimeout(function() { closePayment(); startSpin(); }, 1400);
+        }
+
+        /* Card input formatting */
+        cardNumberInput.addEventListener('input', function() {
+            var v = this.value.replace(/\D/g, '').substring(0, 16);
+            var out = '';
+            for (var i = 0; i < v.length; i++) {
+                if (i > 0 && i % 4 === 0) out += ' ';
+                out += v[i];
+            }
+            this.value = out;
+        });
+        cardExpiryInput.addEventListener('input', function() {
+            var v = this.value.replace(/\D/g, '').substring(0, 4);
+            if (v.length >= 2) v = v.substring(0, 2) + ' / ' + v.substring(2);
+            this.value = v;
+        });
+        cardCvcInput.addEventListener('input', function() {
+            this.value = this.value.replace(/\D/g, '').substring(0, 4);
+        });
+
+        /* ==========================================
+           Spin Animation
+        ========================================== */
+        function startSpin() {
+            if (isSpinning) return;
+            isSpinning = true;
+
+            var finalNum = getRandomUnclaimed();
+
+            spinBtn.style.display = 'none';
+            actionButtons.style.display = 'none';
+            spinSublabel.classList.remove('visible');
+            spinNumber.classList.remove('golden', 'waiting');
+            spinRing.classList.remove('revealed');
+            spinRing.classList.add('spinning');
+
+            var elapsed = 0;
+            var duration = 3400;
+            var speed = 25;
+
+            function tick() {
+                if (elapsed >= duration) {
+                    /* Reveal */
+                    spinRing.classList.remove('spinning');
+                    spinRing.classList.add('revealed');
+                    spinNumber.textContent = '#' + finalNum.toLocaleString();
+                    spinNumber.classList.add('golden');
+                    spinSublabel.classList.add('visible');
+
+                    /* Update state */
+                    claimedSet.add(finalNum);
+                    remaining--;
+                    remainingEl.textContent = remaining.toLocaleString();
+                    remainingEl.classList.add('bump');
+                    setTimeout(function() { remainingEl.classList.remove('bump'); }, 400);
+
+                    userClaimed.unshift({ number: finalNum, time: new Date() });
+                    updateProfileStats();
+                    updateClaimedList();
+
+                    actionButtons.style.display = 'flex';
+                    fireConfetti();
+                    isSpinning = false;
+                    return;
+                }
+
+                var rnd = Math.floor(Math.random() * TOTAL) + 1;
+                spinNumber.textContent = '#' + rnd.toLocaleString();
+                elapsed += speed;
+
+                var progress = elapsed / duration;
+                speed = 25 + Math.pow(progress, 2.5) * 350;
+                setTimeout(tick, speed);
+            }
+
+            tick();
+        }
+
+        /* ==========================================
+           Confetti
+        ========================================== */
+        function fireConfetti() {
+            resizeCanvas();
+            var particles = [];
+            var colors = ['#e8b341','#ffd666','#f59e0b','#34d399','#60a5fa','#f87171','#a78bfa','#fb923c'];
+
+            for (var i = 0; i < 130; i++) {
+                particles.push({
+                    x: confettiCanvas.width / 2 + (Math.random() - 0.5) * 180,
+                    y: confettiCanvas.height * 0.42,
+                    vx: (Math.random() - 0.5) * 18,
+                    vy: -Math.random() * 20 - 5,
+                    size: Math.random() * 8 + 3,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    rot: Math.random() * 360,
+                    rotV: (Math.random() - 0.5) * 14,
+                    gravity: 0.28 + Math.random() * 0.22,
+                    opacity: 1
+                });
+            }
+
+            var frame = 0;
+            function animate() {
+                ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+                var alive = false;
+
+                for (var j = 0; j < particles.length; j++) {
+                    var p = particles[j];
+                    if (p.opacity <= 0) continue;
+                    alive = true;
+                    p.x += p.vx;
+                    p.vy += p.gravity;
+                    p.y += p.vy;
+                    p.rot += p.rotV;
+                    p.vx *= 0.99;
+                    if (frame > 45) p.opacity -= 0.016;
+
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate((p.rot * Math.PI) / 180);
+                    ctx.globalAlpha = Math.max(0, p.opacity);
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.55);
+                    ctx.restore();
+                }
+
+                frame++;
+                if (alive) requestAnimationFrame(animate);
+                else ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            }
+
+            animate();
+        }
+
+        /* ==========================================
+           Profile
+        ========================================== */
+        function openProfile() {
+            profileOverlay.classList.add('open');
+            profilePanel.classList.add('open');
+        }
+
+        function closeProfile() {
+            profileOverlay.classList.remove('open');
+            profilePanel.classList.remove('open');
+        }
+
+        function updateProfileStats() {
+            $('statSpins').textContent = userClaimed.length;
+            $('statSpent').textContent = '$' + (userClaimed.length * 5);
+        }
+
+        function updateClaimedList() {
+            if (userClaimed.length === 0) {
+                claimedList.innerHTML =
+                    '<div class="empty-state"><i class="fa-solid fa-dice"></i>' +
+                    '<p>No numbers claimed yet.<br>Spin the wheel to get started!</p></div>';
+                return;
+            }
+            claimedList.innerHTML = userClaimed.map(function(item, i) {
+                var t = item.time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                return '<div class="claimed-item" style="animation-delay:' + (i * 0.04) + 's">' +
+                    '<span class="number">#' + item.number.toLocaleString() + '</span>' +
+                    '<span class="time">' + t + '</span></div>';
+            }).join('');
+        }
+
+        /* ==========================================
+           Reset for New Spin
+        ========================================== */
+        function resetForNewSpin() {
+            spinNumber.textContent = '?';
+            spinNumber.classList.remove('golden');
+            spinNumber.classList.add('waiting');
+            spinRing.classList.remove('revealed');
+            spinSublabel.classList.remove('visible');
+            spinBtn.style.display = 'flex';
+            actionButtons.style.display = 'none';
+        }
+
+        /* ==========================================
+           Event Listeners
+        ========================================== */
+        spinBtn.addEventListener('click', openPayment);
+        $('cancelPayBtn').addEventListener('click', closePayment);
+        confirmPayBtn.addEventListener('click', processPayment);
+        $('profileBtn').addEventListener('click', openProfile);
+        $('closeProfileBtn').addEventListener('click', closeProfile);
+        profileOverlay.addEventListener('click', closeProfile);
+        $('viewProfileBtn').addEventListener('click', openProfile);
+        $('spinAgainBtn').addEventListener('click', function() {
+            resetForNewSpin();
+            openPayment();
+        });
+
+        paymentModal.addEventListener('click', function(e) {
+            if (e.target === paymentModal) closePayment();
+        });
+
+        [cardNumberInput, cardExpiryInput, cardCvcInput].forEach(function(input) {
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') processPayment();
+            });
+        });
+
+        /* ==========================================
+           Init particles on load (welcome visible)
+        ========================================== */
+        generateParticles();
+        resizeCanvas();
+
+        /* Auto-focus username input */
+        setTimeout(function() { usernameInput.focus(); }, 300);
+    </script>
+
+
+
+</body></html>
